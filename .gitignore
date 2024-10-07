@@ -1,12 +1,18 @@
-### Python ###
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
 
-# Egg files
 *.egg-info
 **/pip-wheel-metadata/**
 
 .mypy_cache/
+.venv/
+
+logs/
+processed-dataset/
+results/
+trained-*
+logs-*
+
+.DS_Store
