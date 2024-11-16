@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from funccraft.data import load_dataset, prepare, save_dataset
+from funccraft.data import load_dataset, download_dataset, prepare, save_dataset
 from funccraft.models import predict
 
 
@@ -17,6 +17,26 @@ def parse_args():
     default_data_path = Path('./prepared-dataset')
     prepare_data_parser = subparsers.add_parser('prepare-data')
     prepare_data_parser.set_defaults(func=prepare_data)
+    # TODO: Use one flag for all options?
+    prepare_data_parser.add_argument(
+        '-p',
+        '--dataset_path',
+        help='Path to initial dataset',
+        type=Path,
+    )
+    prepare_data_parser.add_argument(
+        '-u',
+        '--dataset_url',
+        help='URL of initial dataset',
+        type=str,
+    )
+    prepare_data_parser.add_argument(
+        '-l',
+        '--lang',
+        help='Programming language which code is stored in initial dataset',
+        type=str,
+        default="python",
+    )
     prepare_data_parser.add_argument(
         '-o',
         '--output',
@@ -44,8 +64,18 @@ def parse_args():
 
 
 def prepare_data(args):
-    dataset = prepare()
-    save_dataset(dataset, args.output)
+    if not args.dataset_url and not args.dataset_path:
+        raise RuntimeError("Neither the URL nor the path is specified")
+    if args.dataset_url and args.dataset_path:
+        raise RuntimeError("Either the path or the URL must be specified")
+
+    dataset = (
+        load_dataset(args.dataset_path)
+        if args.dataset_path
+        else download_dataset(args.dataset_url, args.lang)
+    )
+    dataframe = prepare(dataset)
+    save_dataset(dataframe, args.output)
 
 
 def predict_names(args):
