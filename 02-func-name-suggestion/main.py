@@ -35,6 +35,7 @@ def parse_args():
         '--lang',
         help='Programming language which code is stored in initial dataset',
         type=str,
+        choices=["python", "ruby"],
         default="python",
     )
     prepare_data_parser.add_argument(
@@ -74,7 +75,7 @@ def prepare_data(args):
         if args.dataset_path
         else download_dataset(args.dataset_url, args.lang)
     )
-    dataframe = prepare(dataset)
+    dataframe = prepare(dataset, args.lang)
     save_dataset(dataframe, args.output)
 
 

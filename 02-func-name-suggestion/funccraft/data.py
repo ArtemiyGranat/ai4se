@@ -3,9 +3,26 @@ from pathlib import Path
 import datasets
 import pandas as pd
 
+import tree_sitter_python as tspython
+from tree_sitter import Language, Parser
 
-def prepare(df: pd.DataFrame) -> pd.DataFrame:
-    print(df)
+available_langs = {
+    "python": tspython.language(),
+}
+
+
+def prepare(df: pd.DataFrame, lang: str) -> pd.DataFrame:
+    parser = Parser(Language(available_langs[lang]))
+    # print(df.iloc[0]["whole_func_string"])
+    tree = parser.parse(bytes(df.iloc[0]["whole_func_string"], "utf8"))
+
+    root_node = tree.root_node
+    print(root_node.children)
+    function_node = root_node.children[0]
+    print(function_node.child_by_field_name("name").text)
+    print(function_node.child_by_field_name("body").text)
+
+    # print(df)
     return df
 
 
