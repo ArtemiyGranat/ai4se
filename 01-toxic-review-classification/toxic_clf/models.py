@@ -39,8 +39,14 @@ def train_classic_model(
     skf = StratifiedKFold(n_splits=10, random_state=random_state, shuffle=True)
     scores = []
     for train_index, val_index in tqdm(skf.split(X_train_vec, y_train)):
-        X_fold_train, X_fold_val = X_train_vec[train_index], X_train_vec[val_index]
-        y_fold_train, y_fold_val = y_train.iloc[train_index], y_train.iloc[val_index]
+        X_fold_train, X_fold_val = (
+            X_train_vec[train_index],
+            X_train_vec[val_index],
+        )
+        y_fold_train, y_fold_val = (
+            y_train.iloc[train_index],
+            y_train.iloc[val_index],
+        )
 
         model.fit(X_fold_train, y_fold_train)
         y_fold_pred = model.predict(X_fold_val)
@@ -59,17 +65,25 @@ def train_classic_model(
     output_train_logs(model_type, metrics)
 
 
-def train_transformer_model(X_train, y_train, X_test, y_test, model_type, checkpoint):
+def train_transformer_model(
+    X_train, y_train, X_test, y_test, model_type, checkpoint
+):
     def tokenize_function(examples):
-        return tokenizer(examples["text"], padding="max_length", truncation=True)
+        return tokenizer(
+            examples["text"], padding="max_length", truncation=True
+        )
 
     tokenizer = AutoTokenizer.from_pretrained(model_type)
     model = AutoModelForSequenceClassification.from_pretrained(
         model_type if not checkpoint else checkpoint, num_labels=2
     )
 
-    train_data = Dataset.from_pandas(pd.DataFrame({"text": X_train, "labels": y_train}))
-    test_data = Dataset.from_pandas(pd.DataFrame({"text": X_test, "labels": y_test}))
+    train_data = Dataset.from_pandas(
+        pd.DataFrame({"text": X_train, "labels": y_train})
+    )
+    test_data = Dataset.from_pandas(
+        pd.DataFrame({"text": X_test, "labels": y_test})
+    )
     train_data = train_data.map(tokenize_function, batched=True)
     test_data = test_data.map(tokenize_function, batched=True)
 

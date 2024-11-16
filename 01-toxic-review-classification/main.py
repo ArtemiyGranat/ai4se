@@ -64,7 +64,9 @@ def parse_args():
     train_model_parser.add_argument(
         "--checkpoint",
     )
-    train_model_parser.add_argument("-t", "--test-size", type=float, default=0.2)
+    train_model_parser.add_argument(
+        "-t", "--test-size", type=float, default=0.2
+    )
 
     classify_parser = subparsers.add_parser("classify")
     classify_parser.set_defaults(func=predict)
@@ -85,7 +87,9 @@ def prepare_data(args):
 
 def classify(args):
     dataset = load_dataset(args.dataset)
-    classifier(dataset, args.model, args.vectorizer, args.test_size, args.checkpoint)
+    classifier(
+        dataset, args.model, args.vectorizer, args.test_size, args.checkpoint
+    )
 
 
 if __name__ == "__main__":

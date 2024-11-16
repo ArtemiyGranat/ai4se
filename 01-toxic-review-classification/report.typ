@@ -7,28 +7,6 @@
   size: 14pt
 )
 
-#set heading(
-  numbering: "1.",
-  supplement: [Раздел]
-)
-
-#show raw: set block(
-  above: 1em,
-  below: 2em,
-)
-
-#let clr-caption = rgb("777777")
-#let que = [*(?)*]
-
-#let cred(url) = link(
-  url,
-  text(
-    fill: blue
-  )[
-    \[cred\]
-  ],
-)
-
 #let caption(body) = text(fill: clr-caption)[
   #par[
     #body
