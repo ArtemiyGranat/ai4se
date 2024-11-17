@@ -3,26 +3,31 @@ from pathlib import Path
 import datasets
 import pandas as pd
 
-import tree_sitter_python as tspython
 from tree_sitter import Language, Parser
 
-available_langs = {
-    "python": tspython.language(),
-}
+from funccraft.languages import AVAILABLE_LANGUAGES, QUERIES
 
 
 def prepare(df: pd.DataFrame, lang: str) -> pd.DataFrame:
-    parser = Parser(Language(available_langs[lang]))
-    # print(df.iloc[0]["whole_func_string"])
-    tree = parser.parse(bytes(df.iloc[0]["whole_func_string"], "utf8"))
+    lang_obj = Language(AVAILABLE_LANGUAGES[lang])
+    parser = Parser(lang_obj)
+    query = lang_obj.query(QUERIES[lang])
 
-    root_node = tree.root_node
-    print(root_node.children)
-    function_node = root_node.children[0]
-    print(function_node.child_by_field_name("name").text)
-    print(function_node.child_by_field_name("body").text)
+    for index, row in df.iterrows():
+        tree = parser.parse(bytes(row["whole_func_string"], "utf8"))
+        captures = query.captures(tree.root_node)
 
-    # print(df)
+        df.at[index, "func_name"] = captures["name"][0].text.decode("utf8")
+        df.at[index, "func_body"] = captures["body"][0].text.decode("utf8")
+        # There are functions without body in a dataset
+        if "body-without-comments" in captures:
+            df.at[index, "func_body_without_comments"] = '\n'.join(
+                [
+                    line.text.decode("utf8")
+                    for line in captures["body-without-comments"]
+                ]
+            )
+
     return df
 
 
