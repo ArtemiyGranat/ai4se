@@ -5,7 +5,7 @@ import pandas as pd
 
 from tree_sitter import Language, Parser
 
-from funccraft.languages import AVAILABLE_LANGUAGES, QUERIES
+from funccraft.languages import AVAILABLE_LANGUAGES, QUERIES, FIELDS
 
 
 def prepare(df: pd.DataFrame, lang: str) -> pd.DataFrame:
@@ -18,21 +18,23 @@ def prepare(df: pd.DataFrame, lang: str) -> pd.DataFrame:
         tree = parser.parse(bytes(func_string, "utf8"))
         captures = query.captures(tree.root_node)
 
-        df.at[idx, "func_name"] = captures["name"][0].text.decode("utf8")
-        df.at[idx, "func_body"] = captures["body"][0].text.decode("utf8")
-        print(captures)
-        comments = [
-            func_string[node.start_byte : node.value.end_byte]
-            for node, capture_name in captures
-            if capture_name in ["comment", "docstring"]
-        ]
+        comments = []
+        for node, capture_name in captures:
+            if capture_name in FIELDS[lang]["name"]:
+                df.at[idx, "func_name"] = func_string[
+                    node.start_byte : node.end_byte
+                ]
+            elif capture_name in FIELDS[lang]["body"]:
+                df.at[idx, "func_body"] = func_string[
+                    node.start_byte : node.end_byte
+                ]
+            elif capture_name in FIELDS[lang]["comment"]:
+                comments.append(func_string[node.start_byte : node.end_byte])
 
-        body_without_comment = df.at[idx, "func_name"]
+        body_without_comment = df.at[idx, "func_body"]
         for comment in comments:
             body_without_comment = body_without_comment.replace(comment, "")
         df.at[idx, "body_without_comments"] = body_without_comment
-        print(body_without_comment)
-        return
 
     return df
 
