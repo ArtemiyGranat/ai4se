@@ -13,20 +13,26 @@ def prepare(df: pd.DataFrame, lang: str) -> pd.DataFrame:
     parser = Parser(lang_obj)
     query = lang_obj.query(QUERIES[lang])
 
-    for index, row in df.iterrows():
-        tree = parser.parse(bytes(row["whole_func_string"], "utf8"))
+    for idx, row in df.iterrows():
+        func_string = row["whole_func_string"]
+        tree = parser.parse(bytes(func_string, "utf8"))
         captures = query.captures(tree.root_node)
 
-        df.at[index, "func_name"] = captures["name"][0].text.decode("utf8")
-        df.at[index, "func_body"] = captures["body"][0].text.decode("utf8")
-        # There are functions without body in a dataset
-        if "body-without-comments" in captures:
-            df.at[index, "func_body_without_comments"] = '\n'.join(
-                [
-                    line.text.decode("utf8")
-                    for line in captures["body-without-comments"]
-                ]
-            )
+        df.at[idx, "func_name"] = captures["name"][0].text.decode("utf8")
+        df.at[idx, "func_body"] = captures["body"][0].text.decode("utf8")
+        print(captures)
+        comments = [
+            func_string[node.start_byte : node.value.end_byte]
+            for node, capture_name in captures
+            if capture_name in ["comment", "docstring"]
+        ]
+
+        body_without_comment = df.at[idx, "func_name"]
+        for comment in comments:
+            body_without_comment = body_without_comment.replace(comment, "")
+        df.at[idx, "body_without_comments"] = body_without_comment
+        print(body_without_comment)
+        return
 
     return df
 

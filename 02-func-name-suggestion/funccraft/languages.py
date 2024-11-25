@@ -4,14 +4,14 @@ AVAILABLE_LANGUAGES = {
     "python": tspython.language(),
 }
 
-# TODO: Fix python query
 QUERIES = {
     "python": """(function_definition
-          name: (identifier) @name
-          body: (block
-            (expression_statement(string))
-            (_)? @body-without-comments
-          ) @body
-        )
+        name: (identifier) @name
+        body: (block) @body
+    )
+    (expression_statement
+        (string) @docstring
+    )
+   (comment) @comment
     """,
 }
