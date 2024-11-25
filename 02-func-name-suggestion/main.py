@@ -1,7 +1,8 @@
 import argparse
 from pathlib import Path
 
-from funccraft.data import load_dataset, download_dataset, prepare, save_dataset
+from funccraft.data import (download_dataset, load_dataset, prepare,
+                            save_dataset)
 from funccraft.models import predict
 
 

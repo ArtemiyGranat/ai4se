@@ -17,10 +17,10 @@ QUERIES = {
     (comment) @comment
     """,
     "ruby": """(method
-    (setter (identifier))? @name
-    name: (identifier)? @name_without_setter
-    body: (body_statement) @body
-    ) @method
+        name: (setter (identifier))? @name
+        name_without_setter: (identifier)? @name_without_setter
+        body: (body_statement) @body
+    )
     (comment) @comment
     """,
 }
