@@ -15,21 +15,16 @@ def _init_metrics():
     return (evaluate.load('exact_match'), evaluate.load('rouge'))
 
 
-def predict(
-    dataset: datasets.Dataset, model: str, field: str
-) -> None:
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
+def predict(dataset: datasets.Dataset, model: str, field: str) -> None:
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     tokenizer = AutoTokenizer.from_pretrained(model)
     model = T5ForConditionalGeneration.from_pretrained(model).to(device)
     model.eval()
 
-    dataset = dataset.map(
-        lambda row: add_codet5p_prefix(field, row)
-    ).select(range(500))
+    dataset = dataset.map(lambda row: add_codet5p_prefix(field, row)).select(
+        range(500)
+    )
 
     references = dataset["func_name"]
     inputs = tokenizer(

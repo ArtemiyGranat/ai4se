@@ -30,7 +30,5 @@ def extract_func_info(fields, parser, query, row):
 
 
 def add_codet5p_prefix(field, row):
-    row[field] = (
-        "def <extra_id_0> :" + row[field]
-    )
+    row[field] = "def <extra_id_0> :" + row[field]
     return row
