@@ -102,3 +102,125 @@ pip3 install -r requirements.txt -r requirements_dev.txt
 1. Пустые строки
 2. Строки, состоящие из символов (`&&`, `_`, `=`, `-`)
 3. Строки, состоящие из одного слова (`run`: `run_what?`, `md5`, ...)
+
+== Примеры
+
+1.
+```
+Prediction: ' '
+Functions:
+def dictify(r,root=True):
+    """http://stackoverflow.com/a/30923963/2946714"""
+    if root:
+        return {r.tag : dictify(r, False)}
+    d=copy(r.attrib)
+    if r.text:
+        d["_text"]=r.text
+    for x in r.findall("./*"):
+        if x.tag not in d:
+            d[x.tag]=[]
+        d[x.tag].append(dictify(x,False))
+    return d
+
+def get_mgtv_real_url(url):
+        """str->list of str
+        Give you the real URLs."""
+        content = loads(get_content(url))
+        m3u_url = content['info']
+        split = urlsplit(m3u_url)
+        
+        base_url = "{scheme}://{netloc}{path}/".format(scheme = split[0],
+                                                      netloc = split[1],
+                                                      path = dirname(split[2]))
+
+        content = get_content(content['info'])  #get the REAL M3U url, maybe to be changed later?
+        segment_list = []
+        segments_size = 0
+        for i in content.split():
+            if not i.startswith('#'):  #not the best way, better we use the m3u8 package
+                segment_list.append(base_url + i)
+            # use ext-info for fast size calculate
+            elif i.startswith('#EXT-MGTV-File-SIZE:'):
+                segments_size += int(i[i.rfind(':')+1:])
+
+        return m3u_url, segments_size, segment_list
+
+...
+```
+2.
+```
+Prediction: =
+Function:
+def get_head(repo_path):
+    """Get (branch, commit) from HEAD of a git repo."""
+    try:
+        ref = open(os.path.join(repo_path, '.git', 'HEAD'), 'r').read().strip()[5:].split('/')
+        branch = ref[-1]
+        commit = open(os.path.join(repo_path, '.git', *ref), 'r').read().strip()[:7]
+        return branch, commit
+    except:
+        return None
+
+Prediction: }
+Function:
+def warn_for_shell_commands(command)
+      case command
+      when /^cp /i
+        log.warn(log_key) { "Detected command `cp'. Consider using the `copy' DSL method." }
+      when /^rubocopy /i
+        log.warn(log_key) { "Detected command `rubocopy'. Consider using the `sync' DSL method." }
+      when /^mv /i
+        log.warn(log_key) { "Detected command `mv'. Consider using the `move' DSL method." }
+      when /^rm /i
+        log.warn(log_key) { "Detected command `rm'. Consider using the `delete' DSL method." }
+      when /^remove /i
+        log.warn(log_key) { "Detected command `remove'. Consider using the `delete' DSL method." }
+      when /^rsync /i
+        log.warn(log_key) { "Detected command `rsync'. Consider using the `sync' DSL method." }
+      when /^strip /i
+        log.warn(log_key) { "Detected command `strip'. Consider using the `strip' DSL method." }
+      end
+    end
+```
+
+Второй пример на Ruby, есть предположение, что происходит из-за частого
+вхождения символа `}`.
+
+3.
+
+```
+Prediction: main
+Function:
+def task_state(args):
+    """
+    Returns the state of a TaskInstance at the command line.
+    >>> airflow task_state tutorial sleep 2015-01-01
+    success
+    """
+    dag = get_dag(args)
+    task = dag.get_task(task_id=args.task_id)
+    ti = TaskInstance(task, args.execution_date)
+    print(ti.current_state())
+```
+
+== А иногда справляется (почти) лучше, чем разработчики
+
+```
+Prediction: upload
+Function: 
+def execute(self, context):
+        """
+        Uploads the file to Google cloud storage
+        """
+        hook = GoogleCloudStorageHook(
+            google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
+            delegate_to=self.delegate_to)
+
+        hook.upload(
+            bucket_name=self.bucket,
+            object_name=self.dst,
+            mime_type=self.mime_type,
+            filename=self.src,
+            gzip=self.gzip,
+        )
+```
