@@ -20,8 +20,9 @@ def predict(dataset: datasets.Dataset, model: str) -> None:
 
     tokenizer = AutoTokenizer.from_pretrained(model)
     model = T5ForConditionalGeneration.from_pretrained(model).to(device)
+    model.eval()
 
-    dataset = dataset.map(add_codet5p_prefix).select(range(200))
+    dataset = dataset.map(add_codet5p_prefix).select(range(1000))
 
     references = dataset["func_name"]
     inputs = tokenizer(
