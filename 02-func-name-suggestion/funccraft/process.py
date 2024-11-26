@@ -29,8 +29,8 @@ def extract_func_info(fields, parser, query, row):
     }
 
 
-def add_codet5p_prefix(row):
-    row["body_without_comments"] = (
-        "def <extra_id_0> :" + row["body_without_comments"]
+def add_codet5p_prefix(field, row):
+    row[field] = (
+        "def <extra_id_0> :" + row[field]
     )
     return row

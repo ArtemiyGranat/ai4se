@@ -60,6 +60,7 @@ def parse_args():
         '--model',
         default='Salesforce/codet5p-220m',
     )
+    predict_parser.add_argument('-c', '--with-comments', action='store_true')
 
     return parser.parse_args()
 
@@ -77,12 +78,15 @@ def prepare_data(args):
     )
     dataset = prepare(dataset, args.lang)
     save_dataset(dataset, args.output)
-    print(dataset[0])
 
 
 def predict_names(args):
     dataset = load_dataset(args.dataset)
-    predict(dataset, args.model)
+    predict(
+        dataset,
+        args.model,
+        "func_body" if args.with_comments else "body_without_comments",
+    )
 
 
 if __name__ == '__main__':

@@ -15,18 +15,25 @@ def _init_metrics():
     return (evaluate.load('exact_match'), evaluate.load('rouge'))
 
 
-def predict(dataset: datasets.Dataset, model: str) -> None:
-    device = torch.device("cpu")
+def predict(
+    dataset: datasets.Dataset, model: str, field: str
+) -> None:
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
 
     tokenizer = AutoTokenizer.from_pretrained(model)
     model = T5ForConditionalGeneration.from_pretrained(model).to(device)
     model.eval()
 
-    dataset = dataset.map(add_codet5p_prefix).select(range(1000))
+    dataset = dataset.map(
+        lambda row: add_codet5p_prefix(field, row)
+    ).select(range(500))
 
     references = dataset["func_name"]
     inputs = tokenizer(
-        dataset["body_without_comments"],
+        dataset[field],
         return_tensors='pt',
         padding=True,
         truncation=True,
@@ -45,10 +52,15 @@ def predict(dataset: datasets.Dataset, model: str) -> None:
         (pred.split(" ")[1].split("(")[0] if len(pred.split(" ")) > 1 else pred)
         for pred in predictions
     ]
+    cleaned_predictions = [
+        pred.replace("\n", "") for pred in cleaned_predictions
+    ]
 
     print(cleaned_predictions)
     print(references)
-    eval_results = run_evaluate(predictions=predictions, references=references)
+    eval_results = run_evaluate(
+        predictions=cleaned_predictions, references=references
+    )
 
     print('*' * 80)
     print('Evaluation results:')
