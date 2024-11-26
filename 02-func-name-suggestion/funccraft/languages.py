@@ -18,7 +18,7 @@ QUERIES = {
     """,
     "ruby": """(method
         name: (setter (identifier))? @name
-        name_without_setter: (identifier)? @name_without_setter
+        (identifier)? @name_without_setter
         body: (body_statement) @body
     )
     (comment) @comment

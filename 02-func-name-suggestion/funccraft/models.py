@@ -4,6 +4,10 @@ from pprint import pprint
 
 import datasets
 import evaluate
+import torch
+from transformers import AutoTokenizer, T5ForConditionalGeneration
+
+from funccraft.process import add_codet5p_prefix
 
 
 @cache
@@ -12,17 +16,43 @@ def _init_metrics():
 
 
 def predict(dataset: datasets.Dataset, model: str) -> None:
-    # Implement your function name prediction loop here
-    predictions = ['func_one', 'func_three']
-    references = ['func_one', 'func_two']
+    device = torch.device("cpu")
 
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    model = T5ForConditionalGeneration.from_pretrained(model).to(device)
+
+    dataset = dataset.map(add_codet5p_prefix).select(range(200))
+
+    references = dataset["func_name"]
+    inputs = tokenizer(
+        dataset["body_without_comments"],
+        return_tensors='pt',
+        padding=True,
+        truncation=True,
+        max_length=80,
+    ).to(device)
+    outputs = model.generate(**inputs, max_length=80)
+    predictions = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+    del model
+
+    correct_predictions = sum(
+        ref in pred for ref, pred in zip(references, predictions)
+    )
+    print(f'Correct predictions: {correct_predictions}\n')
+
+    cleaned_predictions = [
+        (pred.split(" ")[1].split("(")[0] if len(pred.split(" ")) > 1 else pred)
+        for pred in predictions
+    ]
+
+    print(cleaned_predictions)
+    print(references)
     eval_results = run_evaluate(predictions=predictions, references=references)
-    print()
+
     print('*' * 80)
     print('Evaluation results:')
     pprint(eval_results)
     print('*' * 80)
-    print()
 
 
 def run_evaluate(

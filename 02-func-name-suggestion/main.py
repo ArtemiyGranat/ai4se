@@ -1,8 +1,7 @@
 import argparse
 from pathlib import Path
 
-from funccraft.data import (download_dataset, load_dataset, prepare,
-                            save_dataset)
+from funccraft.data import download_dataset, load_dataset, prepare, save_dataset
 from funccraft.models import predict
 
 
@@ -76,8 +75,9 @@ def prepare_data(args):
         if args.dataset_path
         else download_dataset(args.dataset_url, args.lang)
     )
-    dataframe = prepare(dataset, args.lang)
-    save_dataset(dataframe, args.output)
+    dataset = prepare(dataset, args.lang)
+    save_dataset(dataset, args.output)
+    print(dataset[0])
 
 
 def predict_names(args):
